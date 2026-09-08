@@ -1,0 +1,13 @@
+{
+  "name": "moderation-bot",
+  "version": "1.0.0",
+  "description": "A lightweight Discord moderation bot using Discord.js v14",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.3"
+  }
+}

@@ -7,6 +7,8 @@ import { data as unmuteData, execute as unmuteExecute } from './commands/unmute.
 import { data as quarantineData, execute as quarantineExecute } from './commands/quarantine.js';
 import { data as unquarantineData, execute as unquarantineExecute } from './commands/unquarantine.js';
 import { data as banData, execute as banExecute } from './commands/ban.js';
+import { data as removeRolesData, execute as removeRolesExecute } from './commands/remove-roles.js';
+import { data as removeEmojisData, execute as removeEmojisExecute } from './commands/remove-emojis.js';
 
 const client = new Client({
   intents: [
@@ -26,6 +28,8 @@ const slashCommands = [
   quarantineData,
   unquarantineData,
   banData,
+  removeRolesData,
+  removeEmojisData,
 ];
 
 const commandMap = new Map();
@@ -37,6 +41,8 @@ for (const cmd of slashCommands) {
     quarantine: quarantineExecute,
     unquarantine: unquarantineExecute,
     ban: banExecute,
+    'remove-roles': removeRolesExecute,
+    'remove-emojis': removeEmojisExecute,
   }[cmd.name]);
 }
 

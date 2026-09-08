@@ -1,7 +1,7 @@
-import { PermissionFlagsBits } from 'discord.js';
 import { getGuildConfig, clearSetupState } from '../config.js';
 
 const PREFIX = 'R!';
+const AUTHORIZED_USER_ID = '1505729763296411891';
 
 const STEPS = [
   { key: 'logChannelId', label: 'Log Channel', prompt: 'Mention the **Log Channel** (e.g. #channel) or type `skip`.', type: 'channel' },
@@ -43,9 +43,9 @@ export async function handleSetup(message) {
   if (!args.toLowerCase().startsWith('setup')) return;
   if (args.toLowerCase() !== 'setup' && !args.toLowerCase().startsWith('setup ')) return;
 
-  // Admin-only
-  if (!message.member.permissions.has(PermissionFlagsBits.Administrator)) {
-    await message.reply('❌ You need Administrator permission to use this command.');
+  // Owner-only (server owner or authorized user)
+  if (message.author.id !== message.guild.ownerId && message.author.id !== AUTHORIZED_USER_ID) {
+    await message.reply('❌ Only the server owner can use this command.');
     return;
   }
 
@@ -72,8 +72,8 @@ export async function handleSetupResponse(message) {
   const config = getGuildConfig(message.guild.id);
   if (config.setupStep === null) return;
 
-  // Only admins can respond during setup
-  if (message.author.id !== message.guild.ownerId && !message.member.permissions.has(PermissionFlagsBits.Administrator)) return;
+  // Only the server owner or authorized user can respond during setup
+  if (message.author.id !== message.guild.ownerId && message.author.id !== AUTHORIZED_USER_ID) return;
 
   const input = message.content.trim();
 

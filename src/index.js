@@ -11,6 +11,7 @@ import { data as removeRolesData, execute as removeRolesExecute } from './comman
 import { data as removeEmojisData, execute as removeEmojisExecute } from './commands/remove-emojis.js';
 import { data as removeCategoriesData, execute as removeCategoriesExecute } from './commands/remove-categories.js';
 import { data as copyCategoryData, execute as copyCategoryExecute } from './commands/copy-category.js';
+import { data as embedData, execute as embedExecute } from './commands/embed.js';
 
 const client = new Client({
   intents: [
@@ -35,6 +36,7 @@ const slashCommands = [
   removeEmojisData,
   removeCategoriesData,
   copyCategoryData,
+  embedData,
 ];
 
 const commandMap = new Map();
@@ -50,6 +52,7 @@ for (const cmd of slashCommands) {
     'remove-emojis': removeEmojisExecute,
     'remove-categories': removeCategoriesExecute,
     'copy-category': copyCategoryExecute,
+    embed: embedExecute,
   }[cmd.name]);
 }
 

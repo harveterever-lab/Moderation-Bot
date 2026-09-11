@@ -12,6 +12,8 @@ import { data as removeEmojisData, execute as removeEmojisExecute } from './comm
 import { data as removeCategoriesData, execute as removeCategoriesExecute } from './commands/remove-categories.js';
 import { data as copyCategoryData, execute as copyCategoryExecute } from './commands/copy-category.js';
 import { data as embedData, execute as embedExecute } from './commands/embed.js';
+import { data as controlData, execute as controlExecute } from './commands/control.js';
+import { handleControlButton, handleControlModal, isControlButton, isControlModal } from './components/control-panel.js';
 import { connectDatabase, disconnectDatabase } from './db/database.js';
 
 const client = new Client({
@@ -38,6 +40,7 @@ const slashCommands = [
   removeCategoriesData,
   copyCategoryData,
   embedData,
+  controlData,
 ];
 
 const commandMap = new Map();
@@ -54,6 +57,7 @@ for (const cmd of slashCommands) {
     'remove-categories': removeCategoriesExecute,
     'copy-category': copyCategoryExecute,
     embed: embedExecute,
+    control: controlExecute,
   }[cmd.name]);
 }
 
@@ -95,7 +99,7 @@ client.on(Events.MessageCreate, async (message) => {
   }
 });
 
-// Handle slash command interactions
+// Handle slash command, button, and modal interactions
 client.on(Events.InteractionCreate, async (interaction) => {
   try {
     // Slash commands
@@ -108,6 +112,22 @@ client.on(Events.InteractionCreate, async (interaction) => {
 
       await executor(interaction);
       return;
+    }
+
+    // Button interactions
+    if (interaction.isButton()) {
+      if (isControlButton(interaction.customId)) {
+        await handleControlButton(interaction);
+        return;
+      }
+    }
+
+    // Modal submissions
+    if (interaction.isModalSubmit()) {
+      if (isControlModal(interaction.customId)) {
+        await handleControlModal(interaction);
+        return;
+      }
     }
   } catch (err) {
     console.error('[INTERACTION ERROR]', err.message);

@@ -12,6 +12,7 @@ import { data as removeEmojisData, execute as removeEmojisExecute } from './comm
 import { data as removeCategoriesData, execute as removeCategoriesExecute } from './commands/remove-categories.js';
 import { data as copyCategoryData, execute as copyCategoryExecute } from './commands/copy-category.js';
 import { data as embedData, execute as embedExecute } from './commands/embed.js';
+import { connectDatabase, disconnectDatabase } from './db/database.js';
 
 const client = new Client({
   intents: [
@@ -117,10 +118,25 @@ client.on(Events.InteractionCreate, async (interaction) => {
   }
 });
 
+// Graceful shutdown — close the database connection cleanly
+process.on('SIGINT', async () => {
+  await disconnectDatabase();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  await disconnectDatabase();
+  process.exit(0);
+});
+
 const token = process.env.DISCORD_TOKEN;
 if (!token) {
   console.error('❌ DISCORD_TOKEN is not set in the environment. Add it to your .env file.');
   process.exit(1);
 }
+
+// Connect to MongoDB before logging in to Discord.
+// If MongoDB is unavailable the bot still starts — database is optional.
+await connectDatabase();
 
 client.login(token);

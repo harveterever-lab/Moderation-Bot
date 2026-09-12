@@ -13,7 +13,12 @@ import { data as removeCategoriesData, execute as removeCategoriesExecute } from
 import { data as copyCategoryData, execute as copyCategoryExecute } from './commands/copy-category.js';
 import { data as embedData, execute as embedExecute } from './commands/embed.js';
 import { data as controlData, execute as controlExecute } from './commands/control.js';
+import { data as giveawayData, execute as giveawayExecute } from './commands/giveaway.js';
+import { handleGiveawayPrefix } from './commands/giveaway-prefix.js';
 import { handleControlButton, handleControlModal, isControlButton, isControlModal } from './components/control-panel.js';
+import { handleGiveawayPreviewButton, isGiveawayPreviewButton } from './components/giveaway-preview.js';
+import { registerGiveawayReactionHandlers } from './events/giveaway-reactions.js';
+import { recoverGiveaways } from './utils/giveawayManager.js';
 import { connectDatabase, disconnectDatabase } from './db/database.js';
 
 const client = new Client({
@@ -24,8 +29,9 @@ const client = new Client({
     GatewayIntentBits.GuildMembers,
     GatewayIntentBits.GuildPresences,
     GatewayIntentBits.GuildEmojisAndStickers,
+    GatewayIntentBits.GuildMessageReactions,
   ],
-  partials: [Partials.Channel, Partials.Message, Partials.GuildMember],
+  partials: [Partials.Channel, Partials.Message, Partials.GuildMember, Partials.Reaction],
 });
 
 const slashCommands = [
@@ -41,6 +47,7 @@ const slashCommands = [
   copyCategoryData,
   embedData,
   controlData,
+  giveawayData,
 ];
 
 const commandMap = new Map();
@@ -58,6 +65,7 @@ for (const cmd of slashCommands) {
     'copy-category': copyCategoryExecute,
     embed: embedExecute,
     control: controlExecute,
+    giveaway: giveawayExecute,
   }[cmd.name]);
 }
 
@@ -71,6 +79,12 @@ client.once(Events.ClientReady, async (readyClient) => {
   } catch (err) {
     console.error('[COMMAND REGISTER ERROR]', err.message);
   }
+
+  // Register giveaway reaction handlers (no duplicate listeners — these are separate events)
+  registerGiveawayReactionHandlers(readyClient);
+
+  // Recover active giveaways from MongoDB and schedule their timers
+  await recoverGiveaways(readyClient);
 });
 
 // Handle prefix commands (R!setup) and setup conversation responses
@@ -89,6 +103,10 @@ client.on(Events.MessageCreate, async (message) => {
 
     // Handle R! prefix commands
     if (message.content.startsWith('R!')) {
+      // Giveaway prefix commands (end, cancel, reroll, Pick)
+      const handled = await handleGiveawayPrefix(message);
+      if (handled) return;
+
       const content = message.content.slice(2).trim().toLowerCase();
 
       // R!setup (existing moderation setup)
@@ -118,6 +136,10 @@ client.on(Events.InteractionCreate, async (interaction) => {
     if (interaction.isButton()) {
       if (isControlButton(interaction.customId)) {
         await handleControlButton(interaction);
+        return;
+      }
+      if (isGiveawayPreviewButton(interaction.customId)) {
+        await handleGiveawayPreviewButton(interaction);
         return;
       }
     }

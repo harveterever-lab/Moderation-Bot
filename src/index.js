@@ -14,6 +14,8 @@ import { data as copyCategoryData, execute as copyCategoryExecute } from './comm
 import { data as embedData, execute as embedExecute } from './commands/embed.js';
 import { data as controlData, execute as controlExecute } from './commands/control.js';
 import { data as giveawayData, execute as giveawayExecute } from './commands/giveaway.js';
+import { data as avatarData, execute as avatarExecute } from './commands/avatar.js';
+import { data as bannerData, execute as bannerExecute } from './commands/banner.js';
 import { handleGiveawayPrefix } from './commands/giveaway-prefix.js';
 import { handleControlButton, handleControlModal, isControlButton, isControlModal } from './components/control-panel.js';
 import { handleGiveawayPreviewButton, isGiveawayPreviewButton } from './components/giveaway-preview.js';
@@ -48,6 +50,8 @@ const slashCommands = [
   embedData,
   controlData,
   giveawayData,
+  avatarData,
+  bannerData,
 ];
 
 const commandMap = new Map();
@@ -66,6 +70,8 @@ for (const cmd of slashCommands) {
     embed: embedExecute,
     control: controlExecute,
     giveaway: giveawayExecute,
+    avatar: avatarExecute,
+    banner: bannerExecute,
   }[cmd.name]);
 }
 
